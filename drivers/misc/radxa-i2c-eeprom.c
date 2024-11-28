@@ -246,7 +246,7 @@ static void *hats_get_atom(struct eeprom_hats_header *header, u16 type)
 /**
  * show_eeprom - display the contents of the EEPROM
  */
-static void show_eeprom()
+static void show_eeprom(void)
 {
 
 	printf("\n--------EEPROM INFO--------\n");
@@ -255,13 +255,6 @@ static void show_eeprom()
 	printf("data version: 0x%x\n", *einfo_page1.version);
 	if (*einfo_page1.version == 1) {
 		printf("BOM revision: %s\n", einfo_page1.bom_revision);
-		int tmp = 0;
-		for (int i = 0; i < 10 ; i++) {
-			printf("Ethernet%d MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",i,
-			einfo_page2.mac_addr[tmp++], einfo_page2.mac_addr[tmp++],
-			einfo_page2.mac_addr[tmp++], einfo_page2.mac_addr[tmp++],
-			einfo_page2.mac_addr[tmp++], einfo_page2.mac_addr[tmp++]);
-		}
 	} else {
 		printf("Custom data v%d is not Supported\n", *einfo_page1.version);
 	}
@@ -306,9 +299,9 @@ static int parse_eeprom_info(struct eeprom_hats_header *buf)
 		atom1 = (struct eeprom_atom1_data *)atom_data;
 		einfo_page1.vstr = atom1->vstr;
 		einfo_page1.pstr = atom1->pstr;
-		einfo_page1.serialnum = (u32)hextoul((void *)atom1->pstr +
+		einfo_page1.serialnum = (u32)simple_strtoul((void *)atom1->pstr +
 					CONFIG_EEPROM_ATOM1_SN_OFFSET,
-					NULL);
+					NULL, 16);
 	} else {
 		printf("fail to get vendor atom\n");
 			goto error;
@@ -411,8 +404,7 @@ static int set_mac_address_env(u8 *mac_addr)
 //set mac address to env
 	for(int i=0; i<10; i++)
 	{
-		int tmp = 0;
-		for(tmp; tmp<6; tmp++)
+		for(int tmp = 0; tmp<6; tmp++)
 		{
 			mac_str[tmp] = mac_addr[indx++];
 		}
@@ -465,7 +457,7 @@ int mac_read_from_eeprom(void)
 	return 0;
 }
 
-int do_mac(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	printf("This device does not support user programmable EEPROM.\n");
 	return -1;
